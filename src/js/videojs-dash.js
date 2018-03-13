@@ -70,6 +70,10 @@ class Html5DashJS {
     // element to bind to.
     this.mediaPlayer_.initialize();
 
+    this.timeUpdated = (event) => {
+        this.player.duration(this.duration());
+        this.tech_.trigger({ type: 'timeupdate', target: this.tech_, manuallyTriggered: true });
+    }
     // Retrigger a dash.js-specific error event as a player error
     // See src/streaming/utils/ErrorHandler.js in dash.js code
     // Handled with error (playback is stopped):
@@ -164,7 +168,7 @@ class Html5DashJS {
     };
 
     this.mediaPlayer_.on(dashjs.MediaPlayer.events.ERROR, this.retriggerError_);
-
+    this.mediaPlayer_.on(dashjs.MediaPlayer.events.PLAYBACK_TIME_UPDATED, this.timeUpdated);
     // Apply all dash options that are set
     if (options.dash) {
       Object.keys(options.dash).forEach((key) => {
@@ -245,6 +249,7 @@ class Html5DashJS {
 
   dispose() {
     if (this.mediaPlayer_) {
+      this.mediaPlayer_.off(dashjs.MediaPlayer.events.PLAYBACK_TIME_UPDATED, this.timeUpdated);
       this.mediaPlayer_.off(dashjs.MediaPlayer.events.ERROR, this.retriggerError_);
       this.mediaPlayer_.reset();
     }
@@ -256,6 +261,9 @@ class Html5DashJS {
 
   duration() {
     const duration = this.mediaPlayer_.duration();
+    if (this.mediaPlayer_.isDynamic()) {
+      return -duration;
+    }
     return duration;
   }
 
