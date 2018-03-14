@@ -52,7 +52,9 @@
     "index.html",
     "scripts/",
     "src/",
-    "test/"
+    "test/",
+    ".babelrc",
+    ".jshintrc"
   ],
   "dependencies": {
     "dashjs": "^2.2.0",
