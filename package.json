@@ -22,7 +22,7 @@
     "build:test": "npm-run-all build:test:browserify build:test:webpack",
     "clean": "npm-run-all -p clean:*",
     "clean:build": "rimraf dist dist-test es5",
-	"postclean:build": "mkdirp dist dist-test es5",
+    "postclean:build": "mkdirp dist dist-test es5",
     "lint": "jshint src/**/*.js test/*.js",
     "pretest": "npm-run-all lint build",
     "test": "karma start test/karma.config.js",
