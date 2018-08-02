@@ -215,7 +215,10 @@ class Html5DashJS {
     // Attach the source with any protection data
     this.mediaPlayer_.setProtectionData(this.keySystemOptions_);
     this.mediaPlayer_.attachSource(manifestSource);
-
+		this.mediaPlayer_.attachTTMLRenderingDiv(
+			this.player.textTrackDisplay.el_
+    );
+  
     this.tech_.triggerReady();
   }
 
