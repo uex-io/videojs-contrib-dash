@@ -95,7 +95,8 @@ function attachDashTextTracksToVideojs(player, tech, tracks) {
   });
 
   // Initialize the text track on our first run-through
-  updateActiveDashTextTrack();
+  // Problems calling from TEXT_TRACKS_ADDED context so call from another
+  setTimeout(updateActiveDashTextTrack, 0);
 
   return tracksAttached;
 }
