@@ -95,8 +95,9 @@ function attachDashTextTracksToVideojs(player, tech, tracks) {
   });
 
   // Initialize the text track on our first run-through
-  // Problems calling from TEXT_TRACKS_ADDED context so call from another
-  setTimeout(updateActiveDashTextTrack, 0);
+  // There is a problem with dash.js (from v2.8.0) where immeditately deactivating the track
+  //    will stop the track from ever working.  As a temporary workaround, deactivate on a timeout
+  setTimeout(updateActiveDashTextTrack, 1000);
 
   return tracksAttached;
 }
