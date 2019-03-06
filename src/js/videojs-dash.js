@@ -3,6 +3,7 @@ import videojs from 'video.js';
 import dashjs from 'dashjs';
 import setupAudioTracks from './setup-audio-tracks';
 import setupTextTracks from './setup-text-tracks';
+import document from 'global/document';
 
 /**
  * videojs-contrib-dash
@@ -20,6 +21,7 @@ class Html5DashJS {
     this.tech_ = tech;
     this.el_ = tech.el();
     this.elParent_ = this.el_.parentNode;
+    this.hasFiniteDuration_ = false;
 
     // Do nothing if the src is falsey
     if (!source.src) {
@@ -42,7 +44,8 @@ class Html5DashJS {
       source = hook(source);
     });
 
-    let manifestSource = source.src;
+    const manifestSource = source.src;
+
     this.keySystemOptions_ = Html5DashJS.buildDashJSProtData(source.keySystemOptions);
 
     this.player.dash.mediaPlayer = dashjs.MediaPlayer().create();
@@ -71,9 +74,9 @@ class Html5DashJS {
     this.mediaPlayer_.initialize();
 
     this.timeUpdated = (event) => {
-        this.player.duration(this.duration());
-        this.tech_.trigger({ type: 'timeupdate', target: this.tech_, manuallyTriggered: true });
-    }
+      this.player.duration(this.duration());
+      this.tech_.trigger({ type: 'timeupdate', target: this.tech_, manuallyTriggered: true });
+    };
     // Retrigger a dash.js-specific error event as a player error
     // See src/streaming/utils/ErrorHandler.js in dash.js code
     // Handled with error (playback is stopped):
@@ -95,13 +98,19 @@ class Html5DashJS {
         });
 
       } else if (event.error === 'manifestError' && (
-          (event.event.id === 'createParser') || // Manifest type not supported
-          (event.event.id === 'codec') || // Codec(s) not supported
-          (event.event.id === 'nostreams') || // No streams available to stream
-          (event.event.id === 'nostreamscomposed') || // Error creating Stream object
-          (event.event.id === 'parse') || // syntax error parsing the manifest
-          (event.event.id === 'multiplexedrep') // a stream has multiplexed audio+video
-        )) {
+        // Manifest type not supported
+        (event.event.id === 'createParser') ||
+        // Codec(s) not supported
+        (event.event.id === 'codec') ||
+        // No streams available to stream
+        (event.event.id === 'nostreams') ||
+        // Error creating Stream object
+        (event.event.id === 'nostreamscomposed') ||
+        // syntax error parsing the manifest
+        (event.event.id === 'parse') ||
+        // a stream has multiplexed audio+video
+        (event.event.id === 'multiplexedrep')
+      )) {
         // These errors have useful error messages, so we forward it on
         this.player.error({code: 4, message: event.event.message});
 
@@ -157,6 +166,12 @@ class Html5DashJS {
             'download errors occurred.'
         });
 
+      } else if (event.error === 'mssError') {
+        this.player.error({
+          code: 3,
+          message: event.event
+        });
+
       } else {
         // ignore the error
         return;
@@ -164,11 +179,32 @@ class Html5DashJS {
 
       // only reset the dash player in 10ms async, so that the rest of the
       // calling function finishes
-      setTimeout(() => { this.mediaPlayer_.reset(); }, 10);
+      setTimeout(() => {
+        this.mediaPlayer_.reset();
+      }, 10);
     };
 
     this.mediaPlayer_.on(dashjs.MediaPlayer.events.ERROR, this.retriggerError_);
     this.mediaPlayer_.on(dashjs.MediaPlayer.events.PLAYBACK_TIME_UPDATED, this.timeUpdated);
+    this.getDuration_ = (event) => {
+      const periods = event.data.Period_asArray;
+      const oldHasFiniteDuration = this.hasFiniteDuration_;
+
+      if (event.data.mediaPresentationDuration || periods[periods.length - 1].duration) {
+        this.hasFiniteDuration_ = true;
+      } else {
+        // in case we run into a weird situation where we're VOD but then
+        // switch to live
+        this.hasFiniteDuration_ = false;
+      }
+
+      if (this.hasFiniteDuration_ !== oldHasFiniteDuration) {
+        this.player.trigger('durationchange');
+      }
+    };
+
+    this.mediaPlayer_.on(dashjs.MediaPlayer.events.MANIFEST_LOADED, this.getDuration_);
+
     // Apply all dash options that are set
     if (options.dash) {
       Object.keys(options.dash).forEach((key) => {
@@ -177,7 +213,7 @@ class Html5DashJS {
 
         if (this.mediaPlayer_.hasOwnProperty(dashOptionsKey)) {
           // Providing a key without `set` prefix is now deprecated.
-          videojs.log.warn(`Using dash options in videojs-contrib-dash without the set prefix ` +
+          videojs.log.warn('Using dash options in videojs-contrib-dash without the set prefix ' +
             `has been deprecated. Change '${key}' to '${dashOptionsKey}'`);
 
           // Set key so it will still work
@@ -215,10 +251,10 @@ class Html5DashJS {
     // Attach the source with any protection data
     this.mediaPlayer_.setProtectionData(this.keySystemOptions_);
     this.mediaPlayer_.attachSource(manifestSource);
-		this.mediaPlayer_.attachTTMLRenderingDiv(
-			this.player.textTrackDisplay.el_
+    this.mediaPlayer_.attachTTMLRenderingDiv(
+      this.player.textTrackDisplay.el_
     );
-  
+
     this.tech_.triggerReady();
   }
 
@@ -229,15 +265,15 @@ class Html5DashJS {
    * Also rename 'licenseUrl' property in the options to an 'serverURL' property
    */
   static buildDashJSProtData(keySystemOptions) {
-    let output = {};
+    const output = {};
 
     if (!keySystemOptions || !Array.isArray(keySystemOptions)) {
       return null;
     }
 
     for (let i = 0; i < keySystemOptions.length; i++) {
-      let keySystem = keySystemOptions[i];
-      let options = videojs.mergeOptions({}, keySystem.options);
+      const keySystem = keySystemOptions[i];
+      const options = videojs.mergeOptions({}, keySystem.options);
 
       if (options.licenseUrl) {
         options.serverURL = options.licenseUrl;
@@ -254,6 +290,7 @@ class Html5DashJS {
     if (this.mediaPlayer_) {
       this.mediaPlayer_.off(dashjs.MediaPlayer.events.PLAYBACK_TIME_UPDATED, this.timeUpdated);
       this.mediaPlayer_.off(dashjs.MediaPlayer.events.ERROR, this.retriggerError_);
+      this.mediaPlayer_.off(dashjs.MediaPlayer.events.MANIFEST_LOADED, this.getDuration_);
       this.mediaPlayer_.reset();
     }
 
@@ -264,14 +301,18 @@ class Html5DashJS {
 
   duration() {
     const duration = this.mediaPlayer_.duration();
+
     if (this.mediaPlayer_.isDynamic()) {
       return -duration;
     }
+
     return duration;
+
   }
 
   currentTime() {
-    let time = this.mediaPlayer_.time();
+    const time = this.mediaPlayer_.time();
+
     return time;
   }
 
@@ -297,13 +338,13 @@ class Html5DashJS {
     return Html5DashJS.hooks_[type];
   }
 
-/**
- * Add a function hook to a specific dash lifecycle
- *
- * @param {string} type the lifecycle to hook the function to
- * @param {Function|Function[]} hook the function or array of functions to attach
- * @method hook
- */
+  /**
+   * Add a function hook to a specific dash lifecycle
+   *
+   * @param {string} type the lifecycle to hook the function to
+   * @param {Function|Function[]} hook the function or array of functions to attach
+   * @method hook
+   */
   static hook(type, hook) {
     Html5DashJS.hooks(type, hook);
   }
@@ -347,9 +388,10 @@ const canHandleKeySystems = function(source) {
     source = hook(source);
   });
 
-  let videoEl = document.createElement('video');
+  const videoEl = document.createElement('video');
+
   if (source.keySystemOptions &&
-    !(navigator.requestMediaKeySystemAccess ||
+    !(window.navigator.requestMediaKeySystemAccess ||
       // IE11 Win 8.1
       videoEl.msSetMediaKeys)) {
     return false;
@@ -360,8 +402,8 @@ const canHandleKeySystems = function(source) {
 
 videojs.DashSourceHandler = function() {
   return {
-    canHandleSource: function(source) {
-      let dashExtRE = /\.mpd/i;
+    canHandleSource(source) {
+      const dashExtRE = /\.mpd/i;
 
       if (!canHandleKeySystems(source)) {
         return '';
@@ -371,23 +413,24 @@ videojs.DashSourceHandler = function() {
         return 'probably';
       } else if (dashExtRE.test(source.src)) {
         return 'maybe';
-      } else {
-        return '';
       }
+      return '';
+
     },
 
-    handleSource: function(source, tech, options) {
+    handleSource(source, tech, options) {
       return new Html5DashJS(source, tech, options);
     },
 
-    canPlayType: function(type) {
+    canPlayType(type) {
       return videojs.DashSourceHandler.canPlayType(type);
     }
   };
 };
 
 videojs.DashSourceHandler.canPlayType = function(type) {
-  let dashTypeRE = /^application\/dash\+xml/i;
+  const dashTypeRE = /^application\/dash\+xml/i;
+
   if (dashTypeRE.test(type)) {
     return 'probably';
   }
@@ -396,7 +439,7 @@ videojs.DashSourceHandler.canPlayType = function(type) {
 };
 
 // Only add the SourceHandler if the browser supports MediaSourceExtensions
-if (!!window.MediaSource) {
+if (window.MediaSource) {
   videojs.getTech('Html5').registerSourceHandler(videojs.DashSourceHandler(), 0);
 }
 
