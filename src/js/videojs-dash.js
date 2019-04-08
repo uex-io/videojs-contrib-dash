@@ -202,9 +202,10 @@ class Html5DashJS {
     }
 
     this.mediaPlayer_.attachView(this.el_);
-
-    // Dash.js autoplays by default, video.js will handle autoplay
-    this.mediaPlayer_.setAutoPlay(false);
+    
+    // Set autoplay to be the videojs autoplay setting, 
+    // making sure that any truthy values are considered true
+    this.mediaPlayer_.setAutoPlay(!!this.player.autoplay());
 
     // Setup audio tracks
     setupAudioTracks.call(null, this.player, tech);
