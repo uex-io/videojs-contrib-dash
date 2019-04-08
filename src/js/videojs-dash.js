@@ -219,7 +219,14 @@ class Html5DashJS {
 		this.mediaPlayer_.attachTTMLRenderingDiv(
 			this.player.textTrackDisplay.el_
     );
-  
+
+    this.timeOffset = 0;
+    this.mediaPlayer_.on("manifestLoaded", e => {
+      if (e.data.type === "dynamic") {
+        this.timeOffset += e.data.minBufferTime;
+      }
+    });
+
     this.tech_.triggerReady();
   }
 
