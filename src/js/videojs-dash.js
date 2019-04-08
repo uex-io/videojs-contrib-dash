@@ -272,12 +272,19 @@ class Html5DashJS {
   }
 
   currentTime() {
-    let time = this.mediaPlayer_.time();
-    return time;
-  }
+    var time = this.mediaPlayer_.time();
+    let result = time + this.timeOffset + this.player.liveTracker.pastSeekEnd();
+    return result;
+  };
 
   setCurrentTime(seekTime) {
-    this.mediaPlayer_.seek(seekTime);
+    let time = seekTime - this.timeOffset - this.player.liveTracker.pastSeekEnd();
+    this.mediaPlayer_.seek(time);
+  }
+
+  seekable() {
+    let duration = this.mediaPlayer_.duration();
+    return { length: 1, start: () => this.timeOffset, end: () => this.timeOffset + duration };
   }
 
   /**
