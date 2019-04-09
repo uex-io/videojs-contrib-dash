@@ -222,8 +222,15 @@ class Html5DashJS {
 
     this.timeOffset = 0;
     this.mediaPlayer_.on("manifestLoaded", e => {
+      this.pastSeekEnd = 0.0;
       if (e.data.type === "dynamic") {
         this.timeOffset += e.data.minBufferTime;
+        if (this.pastSeekEndInterval) {
+          clearInterval(this.pastSeekEndInterval);
+        }
+        this.pastSeekEndInterval = setInterval(() => {
+          this.pastSeekEnd += 0.03;
+        }, 30);
       }
     });
 
