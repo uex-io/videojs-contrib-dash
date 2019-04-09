@@ -222,9 +222,11 @@ class Html5DashJS {
 
     this.timeOffset = 0;
     this.mediaPlayer_.on("manifestLoaded", e => {
+      let pastSeekEnd = this.pastSeekEnd || 0.0;
       this.pastSeekEnd = 0.0;
       if (e.data.type === "dynamic") {
-        this.timeOffset += e.data.minBufferTime;
+        // this.timeOffset += e.data.minBufferTime;
+        this.timeOffset += pastSeekEnd;
         if (this.pastSeekEndInterval) {
           clearInterval(this.pastSeekEndInterval);
         }
