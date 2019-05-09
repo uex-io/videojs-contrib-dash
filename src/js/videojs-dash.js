@@ -220,8 +220,10 @@ class Html5DashJS {
 			this.player.textTrackDisplay.el_
     );
 
-    this.timeOffset = 0;
+    this.timeOffset = 0.0;
     this.mediaPlayer_.on("manifestLoaded", e => {
+      // If we get a manifest update for each segment then we
+      // update timeOffset (seekable range) and reset pastSeekEnd
       let pastSeekEnd = this.pastSeekEnd || 0.0;
       this.pastSeekEnd = 0.0;
       if (e.data.type === "dynamic") {
@@ -232,6 +234,13 @@ class Html5DashJS {
         }
         this.pastSeekEndInterval = setInterval(() => {
           this.pastSeekEnd += 0.03;
+
+          // For number based live manifests we might not get frequent manifest updates
+          // so simulate this whenever pastSeekEnd > minBufferTime
+          if (this.pastSeekEnd > e.data.minBufferTime) {
+            this.timeOffset += this.pastSeekEnd;
+            this.pastSeekEnd = 0.0;
+          }
         }, 30);
       }
     });
@@ -273,6 +282,10 @@ class Html5DashJS {
       this.mediaPlayer_.off(dashjs.MediaPlayer.events.ERROR, this.retriggerError_);
       this.mediaPlayer_.reset();
     }
+    if (this.pastSeekEndInterval) {
+      clearInterval(this.pastSeekEndInterval);
+    }
+
 
     if (this.player.dash) {
       delete this.player.dash;
@@ -289,12 +302,12 @@ class Html5DashJS {
 
   currentTime() {
     var time = this.mediaPlayer_.time();
-    let result = time + this.timeOffset + this.player.liveTracker.pastSeekEnd();
+    let result = time + this.timeOffset + this.pastSeekEnd;
     return result;
   };
 
   setCurrentTime(seekTime) {
-    let time = seekTime - this.timeOffset - this.player.liveTracker.pastSeekEnd();
+    let time = seekTime - this.timeOffset - this.pastSeekEnd;
     this.mediaPlayer_.seek(time);
   }
 
