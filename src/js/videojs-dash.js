@@ -222,25 +222,26 @@ class Html5DashJS {
 
     this.timeOffset = 0.0;
     this.pastSeekEnd = 0.0;
+    let that = this;
     this.mediaPlayer_.on("manifestLoaded", e => {
       // If we get a manifest update for each segment then we
       // update timeOffset (seekable range) and reset pastSeekEnd
-      let tempPastSeekEnd = this.pastSeekEnd;
-      this.pastSeekEnd = 0.0;
+      let tempPastSeekEnd = that.pastSeekEnd;
+      that.pastSeekEnd = 0.0;
       if (e.data.type === "dynamic") {
         // this.timeOffset += e.data.minBufferTime;
-        this.timeOffset += tempPastSeekEnd;
-        if (this.pastSeekEndInterval) {
-          clearInterval(this.pastSeekEndInterval);
+        that.timeOffset += tempPastSeekEnd;
+        if (that.pastSeekEndInterval) {
+          clearInterval(that.pastSeekEndInterval);
         }
-        this.pastSeekEndInterval = setInterval(() => {
-          this.pastSeekEnd += 0.03;
+        that.pastSeekEndInterval = setInterval(() => {
+          that.pastSeekEnd += 0.03;
 
           // For number based live manifests we might not get frequent manifest updates
           // so simulate this whenever pastSeekEnd > minBufferTime
-          if (this.pastSeekEnd > e.data.minBufferTime) {
-            this.timeOffset += this.pastSeekEnd;
-            this.pastSeekEnd = 0.0;
+          if (that.pastSeekEnd > e.data.minBufferTime) {
+            that.timeOffset += that.pastSeekEnd;
+            that.pastSeekEnd = 0.0;
           }
         }, 30);
       }
