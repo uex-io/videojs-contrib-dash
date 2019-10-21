@@ -6,7 +6,7 @@
     "type": "git",
     "url": "https://github.com/videojs/videojs-contrib-dash.git"
   },
-  "version": "2.9.2",
+  "version": "2.9.3",
   "author": "Brightcove, Inc",
   "license": "Apache-2.0",
   "scripts": {
@@ -57,7 +57,7 @@
     ".jshintrc"
   ],
   "dependencies": {
-    "dashjs": "2.6.6",
+    "dashjs": "2.9.2",
     "global": "^4.3.0",
     "video.js": "^5.18.0 || ^6.2.8"
   },
