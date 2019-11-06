@@ -1,10 +1,21 @@
 CHANGELOG
 =========
 
-## HEAD (Unreleased)
-* Cleanup of event addition and removal on dispose to not bork on source change
+## 2.11.0 (2019-03-08)
+* Fix bug where VTT captions wouldn't show
+* Support for human-readable track labels
 
---------------------
+## 2.10.1 (2018-12-18)
+* Change main to be `dist/videojs-dash.cjs.js`
+* Reformat test code
+* Add v7 to list of supported video.js dependencies
+
+## 2.10.0 (2018-07-30)
+* Cleanup of event addition and removal on dispose to not bork on source change
+* Use MPD type and duration to determine if we should report live status
+* Add error handler for new `mssError` in dash.js 2.6.8
+* Pass through text track kind to dash.js
+
 ## 2.9.3 (2018-04-12)
 * Retrigger dash.js errors on video.js
 
@@ -66,4 +77,3 @@ CHANGELOG
 
 ## 2.0.0 (2015-10-16)
 * Update project to be compatible with video.js 5.0
-

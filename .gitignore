@@ -29,13 +29,9 @@ package-lock.json
 # Publication
 .npmrc
 
-# Yeoman meta-data
-.yo-rc.json
-
 # Build-related directories
 dist/
-dist-test/
 docs/api/
-es5/
-tmp
-coverage/
+test/dist/
+.eslintcache
+.yo-rc.json

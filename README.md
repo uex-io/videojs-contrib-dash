@@ -1,16 +1,32 @@
 # video.js MPEG-DASH Source Handler
 
 [![Build Status](https://travis-ci.org/videojs/videojs-contrib-dash.svg?branch=master)](https://travis-ci.org/videojs/videojs-contrib-dash)
-[![Slack Status](http://slack.videojs.com/badge.svg)](http://slack.videojs.com)
 [![Greenkeeper badge](https://badges.greenkeeper.io/videojs/videojs-contrib-dash.svg)](https://greenkeeper.io/)
+[![Slack Status](http://slack.videojs.com/badge.svg)](http://slack.videojs.com)
+
+[![NPM](https://nodei.co/npm/videojs-contrib-dash.png?downloads=true&downloadRank=true)](https://nodei.co/npm/videojs-contrib-dash/)
 
 A video.js source handler for supporting MPEG-DASH playback through a video.js player on browsers with support for Media Source Extensions.
 
-Lead Maintainer: Joe Forbes [forbesjo](https://github.com/forbesjo)
+__Supported Dash.js version: 2.x__
 
 Maintenance Status: Stable
 
 Drop by our slack channel (#playback) on the [Video.js slack](http://slack.videojs.com).
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Getting Started](#getting-started)
+- [Protected Content](#protected-content)
+- [Captions](#captions)
+- [Multi-Language Labels](#multi-language-labels)
+- [Passing options to Dash.js](#passing-options-to-dashjs)
+  - [Deprecation Warning](#deprecation-warning)
+- [Initialization Hook](#initialization-hook)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Getting Started
 
@@ -94,6 +110,10 @@ videojs('example-video', {
 ```
 
 A warning will be logged if this setting is not applied.
+
+## Multi-Language Labels
+
+When labels in a playlist file are in multiple languages, the 2-character language code should be used if it exists; this allows the player to auto-select the appropriate label.
 
 ## Passing options to Dash.js
 
