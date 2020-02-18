@@ -20,6 +20,25 @@ function find(l, f) {
 function attachDashTextTracksToVideojs(player, tech, tracks) {
   const trackDictionary = [];
 
+  function generateKindFromTrack(track) {
+    let roles = track.roles;
+    if (roles) {
+      if (roles.some(role => role === "main")) {
+        if (track.accessibility) {
+          if (track.accessibility.some(acc => acc === "2")) {
+            return "descriptions";
+          }
+        } else {
+          return "captions";
+        }
+      }
+      if (roles.some(role => role === "alternate")) {
+        return "subtitles";
+      }
+    }
+    return "subtitles";
+  }
+
   // Add remote tracks
   const tracksAttached = tracks
     // Map input data to match HTMLTrackElement spec
@@ -30,6 +49,7 @@ function attachDashTextTracksToVideojs(player, tech, tracks) {
         label: track.lang,
         language: track.lang,
         srclang: track.lang,
+        kind: generateKindFromTrack(track)
       },
     }))
 

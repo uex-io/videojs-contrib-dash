@@ -20,6 +20,21 @@ function handlePlaybackMetadataLoaded(player, tech) {
     return `dash-audio-${index}`;
   }
 
+  function generateKindFromTrack(track) {
+    if (track.roles) {
+      if (
+        track.roles.some(role => role === "alternate") &&
+        track.accessibility &&
+        track.accessibility.some(a => a === "1")
+      ) {
+        return "descriptions";
+      } else if (track.roles.some(role => role === "dub")) {
+        return "alternate";
+      }
+    }
+    return "main";
+  }
+
   function findDashAudioTrack(dashAudioTracks, videojsAudioTrack) {
     return dashAudioTracks.find(({index}) =>
       generateIdFromTrackIndex(index) === videojsAudioTrack.id
@@ -46,7 +61,7 @@ function handlePlaybackMetadataLoaded(player, tech) {
       new videojs.AudioTrack({
         enabled: dashTrack === currentAudioTrack,
         id: generateIdFromTrackIndex(dashTrack.index),
-        kind: dashTrack.kind || 'main',
+        kind: generateKindFromTrack(dashTrack),
         label,
         language: dashTrack.lang,
       })
