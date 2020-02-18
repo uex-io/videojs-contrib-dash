@@ -1,8 +1,9 @@
 import dashjs from 'dashjs';
 import videojs from 'video.js';
+import window from 'global/window';
 
 function find(l, f) {
-  for(let i = 0; i < l.length; i++) {
+  for (let i = 0; i < l.length; i++) {
     if (f(l[i])) {
       return l[i];
     }
@@ -43,19 +44,47 @@ function attachDashTextTracksToVideojs(player, tech, tracks) {
   const tracksAttached = tracks
     // Map input data to match HTMLTrackElement spec
     // https://developer.mozilla.org/en-US/docs/Web/API/HTMLTrackElement
-    .map((track) => ({
-      dashTrack: track,
-      trackConfig: {
-        label: track.lang,
-        language: track.lang,
-        srclang: track.lang,
-        kind: generateKindFromTrack(track)
-      },
-    }))
+    .map((track) => {
+      let localizedLabel;
+
+      if (Array.isArray(track.labels)) {
+        for (let i = 0; i < track.labels.length; i++) {
+          if (
+            track.labels[i].lang &&
+            player.language().indexOf(track.labels[i].lang.toLowerCase()) !== -1
+          ) {
+            localizedLabel = track.labels[i];
+
+            break;
+          }
+        }
+      }
+
+      let label;
+
+      if (localizedLabel) {
+        label = localizedLabel.text;
+      } else if (Array.isArray(track.labels) && track.labels.length === 1) {
+        label = track.labels[0].text;
+      } else {
+        label = track.lang || track.label;
+      }
+
+      return {
+        dashTrack: track,
+        trackConfig: {
+          label,
+          language: track.lang,
+          srclang: track.lang,
+          kind: generateKindFromTrack(track)
+        }
+      };
+    })
 
     // Add track to videojs track list
     .map(({trackConfig, dashTrack}) => {
       const remoteTextTrack = player.addRemoteTextTrack(trackConfig, false);
+
       trackDictionary.push({textTrack: remoteTextTrack.track, dashTrack});
 
       // Don't add the cues becuase we're going to let dash handle it natively. This will ensure
@@ -66,6 +95,7 @@ function attachDashTextTracksToVideojs(player, tech, tracks) {
 
       return remoteTextTrack;
     })
+
   ;
 
   /*
