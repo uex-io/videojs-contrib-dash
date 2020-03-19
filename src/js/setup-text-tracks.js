@@ -25,10 +25,8 @@ function attachDashTextTracksToVideojs(player, tech, tracks) {
     let roles = track.roles;
     if (roles) {
       if (roles.some(role => role === "main")) {
-        if (track.accessibility) {
-          if (track.accessibility.some(acc => acc === "2")) {
-            return "descriptions";
-          }
+        if (track.accessibility && track.accessibility.some(acc => acc === "2")) {
+          return "descriptions";
         } else {
           return "captions";
         }

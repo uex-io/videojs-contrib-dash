@@ -21,15 +21,16 @@ function handlePlaybackMetadataLoaded(player, tech) {
   }
 
   function generateKindFromTrack(track) {
-    if (track.roles) {
+    let roles = track.roles;
+    if (roles) {
       if (
-        track.roles.some(role => role === "alternate") &&
+        roles.some(role => role === "alternate") &&
         track.accessibility &&
         track.accessibility.some(a => a === "1")
       ) {
-        return "descriptions";
-      } else if (track.roles.some(role => role === "dub")) {
-        return "alternate";
+        return "main-desc";
+      } else if (roles.some(role => role === "dub")) {
+        return "translation";
       }
     }
     return "main";
