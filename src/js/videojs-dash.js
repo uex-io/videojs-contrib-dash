@@ -2,6 +2,7 @@ import window from 'global/window';
 import videojs from 'video.js';
 import dashjs from 'dashjs';
 import setupAudioTracks from './setup-audio-tracks';
+import setupVideoTracks from './setup-video-tracks';
 import setupTextTracks from './setup-text-tracks';
 
 /**
@@ -206,6 +207,9 @@ class Html5DashJS {
     // Set autoplay to be the videojs autoplay setting, 
     // making sure that any truthy values are considered true
     this.mediaPlayer_.setAutoPlay(!!this.player.autoplay());
+
+    // setup video tracks
+    setupVideoTracks.call(null, this.player, tech);
 
     // Setup audio tracks
     setupAudioTracks.call(null, this.player, tech);
