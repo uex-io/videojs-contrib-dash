@@ -1,7 +1,6 @@
 import window from 'global/window';
 import videojs from 'video.js';
 import dashjs from 'dashjs';
-import setupVideoTracks from './setup-video-tracks';
 import setupAudioTracks from './setup-audio-tracks';
 import setupTextTracks from './setup-text-tracks';
 import document from 'global/document';
@@ -80,9 +79,9 @@ class Html5DashJS {
     this.mediaPlayer_.initialize();
 
     this.timeUpdated = (event) => {
-        this.player.duration(this.duration());
-        this.tech_.trigger({ type: 'timeupdate', target: this.tech_, manuallyTriggered: true });
-    }
+      this.player.duration(this.duration());
+      this.tech_.trigger({ type: 'timeupdate', target: this.tech_, manuallyTriggered: true });
+    };
     // Retrigger a dash.js-specific error event as a player error
     // See src/streaming/utils/ErrorHandler.js in dash.js code
     // Handled with error (playback is stopped):
@@ -245,13 +244,10 @@ class Html5DashJS {
     }
 
     this.mediaPlayer_.attachView(this.el_);
-    
-    // Set autoplay to be the videojs autoplay setting, 
+
+    // Set autoplay to be the videojs autoplay setting,
     // making sure that any truthy values are considered true
     this.mediaPlayer_.setAutoPlay(!!this.player.autoplay());
-
-    // setup video tracks
-    setupVideoTracks.call(null, this.player, tech);
 
     // Setup audio tracks
     setupAudioTracks.call(null, this.player, tech);
@@ -262,19 +258,21 @@ class Html5DashJS {
     // Attach the source with any protection data
     this.mediaPlayer_.setProtectionData(this.keySystemOptions_);
     this.mediaPlayer_.attachSource(manifestSource);
-		this.mediaPlayer_.attachTTMLRenderingDiv(
-			this.player.textTrackDisplay.el_
+    this.mediaPlayer_.attachTTMLRenderingDiv(
+      this.player.textTrackDisplay.el_
     );
 
     this.timeOffset = 0.0;
     this.pastSeekEnd = 0.0;
-    let that = this;
-    this.mediaPlayer_.on("manifestLoaded", e => {
+    const that = this;
+
+    this.mediaPlayer_.on('manifestLoaded', e => {
       // If we get a manifest update for each segment then we
       // update timeOffset (seekable range) and reset pastSeekEnd
-      let tempPastSeekEnd = that.pastSeekEnd;
+      const tempPastSeekEnd = that.pastSeekEnd;
+
       that.pastSeekEnd = 0.0;
-      if (e.data.type === "dynamic") {
+      if (e.data.type === 'dynamic') {
         // this.timeOffset += e.data.minBufferTime;
         that.timeOffset += tempPastSeekEnd;
         if (that.pastSeekEndInterval) {
@@ -335,7 +333,6 @@ class Html5DashJS {
       clearInterval(this.pastSeekEndInterval);
     }
 
-
     if (this.player.dash) {
       delete this.player.dash;
     }
@@ -350,18 +347,21 @@ class Html5DashJS {
   }
 
   currentTime() {
-    var time = this.mediaPlayer_.time();
-    let result = time + this.timeOffset + this.pastSeekEnd;
+    const time = this.mediaPlayer_.time();
+    const result = time + this.timeOffset + this.pastSeekEnd;
+
     return result;
-  };
+  }
 
   setCurrentTime(seekTime) {
-    let time = seekTime - this.timeOffset - this.pastSeekEnd;
+    const time = seekTime - this.timeOffset - this.pastSeekEnd;
+
     this.mediaPlayer_.seek(time);
   }
 
   seekable() {
-    let duration = this.mediaPlayer_.duration();
+    const duration = this.mediaPlayer_.duration();
+
     return { length: 1, start: () => this.timeOffset, end: () => this.timeOffset + duration };
   }
 
