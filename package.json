@@ -58,7 +58,7 @@
     ".jshintrc"
   ],
   "dependencies": {
-    "dashjs": "3.0.2",
+    "dashjs": "3.0.3",
     "global": "^4.3.2",
     "video.js": "^5.18.0 || ^6 || ^7"
   },
